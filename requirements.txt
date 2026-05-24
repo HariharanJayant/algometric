@@ -5,3 +5,4 @@ pandas
 numpy
 ta
 gunicorn
+google-genai
