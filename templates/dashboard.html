@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% set active_page = 'home' %}
+{% block title %}Scanner - AlgoMetrics Terminal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="glass-card">
+            <h4 class="terminal-header mb-3">🎛️ Command Controls</h4>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label small control-label-bright">TARGET TICKER SYMBOL</label>
+                    <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-primary" id="ticker" name="ticker" value="NVDA">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small control-label-bright">SCREENSHOT PIPELINE INGESTION</label>
+                    <input class="form-control" type="file" id="chart_image" name="chart_image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">🚀 Initialize Quant Scanning Matrix</button>
+            </form>
+        </div>
+
+        <div class="glass-card">
+            <h4 class="terminal-header mb-3">💼 Risk Position Engine</h4>
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label small control-label-bright">ACCOUNT BAL ($)</label>
+                    <input type="number" class="form-control" id="acc_balance" value="10000">
+                </div>
+                <div class="col-6">
+                    <label class="form-label small control-label-bright">MAX RISK (%)</label>
+                    <input type="number" class="form-control" id="risk_percent" value="1" step="0.25">
+                </div>
+            </div>
+            <div class="p-3 nested-dark-well rounded-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-bold text-bright-silver">Deployed Position Units:</span>
+                    <span id="calc-shares" class="fw-bold text-white">0 Units</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="small fw-bold text-bright-silver">Total Risk Capital Allocation:</span>
+                    <span id="calc-risk-cash" class="fw-bold text-neon-red">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-2">
+                <div class="glass-card m-0 p-3"><div class="metric-label">Last Price</div><div id="m-price" class="metric-value text-neon-blue">$0.00</div></div>
+            </div>
+            <div class="col-md-3 col-6 mb-2">
+                <div class="glass-card m-0 p-3"><div class="metric-label">Buy Limit</div><div id="m-buy" class="metric-value text-neon-green">$0.00</div></div>
+            </div>
+            <div class="col-md-3 col-6 mb-2">
+                <div class="glass-card m-0 p-3"><div class="metric-label">Stop Loss</div><div id="m-stop" class="metric-value text-neon-red">$0.00</div></div>
+            </div>
+            <div class="col-md-3 col-6 mb-2">
+                <div class="glass-card m-0 p-3"><div class="metric-label">Take Profit</div><div id="m-profit" class="metric-value text-neon-cyan">$0.00</div></div>
+            </div>
+        </div>
+
+        <div class="glass-card mt-3">
+            <h4 class="terminal-header mb-3">📐 Quant Indicator Target Matrices</h4>
+            <div class="row text-center nested-dark-well p-3 rounded-4 g-2 m-0 text-white">
+                <div class="col-6 col-md-3"><strong class="text-bright-silver">ATR Value:</strong> <span id="m-atr" class="fw-bold text-white">0.0</span></div>
+                <div class="col-6 col-md-3"><strong class="text-bright-silver">Pivot (P):</strong> <span id="m-pivot" class="fw-bold text-white">0.0</span></div>
+                <div class="col-6 col-md-3"><strong class="text-bright-silver">Support (S1):</strong> <span id="m-s1" class="fw-bold text-neon-green">0.0</span></div>
+                <div class="col-6 col-md-3"><strong class="text-bright-silver">Resist (R1):</strong> <span id="m-r1" class="fw-bold text-neon-red">0.0</span></div>
+            </div>
+            
+            <div class="row text-center nested-dark-well p-2 rounded-4 g-2 m-0 text-white mt-2" style="border: 1px solid #4b5563;">
+                <div class="col-md-4"><strong class="text-bright-silver">Fast MA (9):</strong> <span id="m-fastma" class="fw-bold text-neon-blue">0.00</span></div>
+                <div class="col-md-4"><strong class="text-bright-silver">Slow MA (21):</strong> <span id="m-slowma" class="fw-bold text-neon-cyan">0.00</span></div>
+                <div class="col-md-4"><strong class="text-bright-silver">Strategy Engine:</strong> <span id="m-signal" class="fw-bold text-warning">Awaiting Scan...</span></div>
+            </div>
+
+            <div class="row text-center nested-dark-well p-2 rounded-4 g-2 m-0 text-white mt-2" style="border: 1px solid #1f2937; background-color: #0b0f19 !important;">
+                <div class="col-md-4"><strong class="text-bright-silver">RSI (14):</strong> <span id="m-rsi" class="fw-bold text-neon-cyan">0.00</span></div>
+                <div class="col-md-4"><strong class="text-bright-silver">MACD Line:</strong> <span id="m-macd" class="fw-bold text-neon-green">0.00</span></div>
+                <div class="col-md-4"><strong class="text-bright-silver">Bollinger Envelope:</strong> <span id="m-bb" class="fw-bold text-neon-blue">U: 0.00 / L: 0.00</span></div>
+            </div>
+
+            <div class="mt-4">
+                <h5 class="small fw-bold text-uppercase text-bright-silver tracking-wide">🧠 Real-Time AI Structure Matrix Feedback</h5>
+                <div id="m-analysis" class="p-3 bg-black text-neon-green rounded-3 small border" style="min-height: 80px; border-color: #4b5563 !important;">System operational. Awaiting algorithmic scan sequencing pipeline initialization...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-12">
+        <div class="glass-card">
+            <h4 class="terminal-header mb-3">🌍 Live Institutional Chart Stream Matrix</h4>
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <div class="fw-bold mb-2 small text-uppercase text-primary">🖥️ Primary Active Focus Terminal Chart</div>
+                    <div class="chart-container" id="main-tradingview-frame">
+                        <div id="tradingview_main" style="height:100%;width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+                        <script type="text/javascript">
+                        function loadMainChart(symbol) {
+                            let marketPrefix = "NASDAQ:";
+                            
+                            // Route custom indices safely to direct TV data packages
+                            if (symbol === "SPX" || symbol === "DJI") {
+                                marketPrefix = ""; 
+                            }
+
+                            new TradingView.widget({
+                                "autosize": true,
+                                "symbol": marketPrefix + symbol,
+                                "interval": "D",
+                                "timezone": "Etc/UTC",
+                                "theme": "dark",
+                                "style": "1",
+                                "locale": "en",
+                                "enable_publishing": false,
+                                "hide_side_toolbar": false,
+                                "allow_symbol_change": true,
+                                layout: { backgroundColor: "#111827", textColor: "#cbd5e1" },
+                                "container_id": "tradingview_main"
+                            });
+                        }
+                        loadMainChart("NVDA");
+                        </script>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="fw-bold mb-2 small text-uppercase text-bright-silver">📊 Global Assets Streaming Radar</div>
+                    <div class="list-group rounded-3 overflow-hidden" style="border: 1px solid #4b5563; height: 480px; overflow-y: auto;">
+                        <button onclick="loadMainChart('NVDA')" class="list-group-item list-group-item-action list-group-item-dark-custom d-flex justify-content-between align-items-center p-3"><div><strong class="text-white">NVIDIA Corp.</strong> <span class="text-bright-silver small d-block">NASDAQ: NVDA</span></div> <span class="badge bg-primary">Active</span></button>
+                        <button onclick="loadMainChart('AAPL')" class="list-group-item list-group-item-action list-group-item-dark-custom d-flex justify-content-between align-items-center p-3"><div><strong class="text-white">Apple Inc.</strong> <span class="text-bright-silver small d-block">NASDAQ: AAPL</span></div> <span class="badge bg-secondary">Stream</span></button>
+                        <button onclick="loadMainChart('MSFT')" class="list-group-item list-group-item-action list-group-item-dark-custom d-flex justify-content-between align-items-center p-3"><div><strong class="text-white">Microsoft Corp.</strong> <span class="text-bright-silver small d-block">NASDAQ: MSFT</span></div> <span class="badge bg-secondary">Stream</span></button>
+                        <button onclick="loadMainChart('TSLA')" class="list-group-item list-group-item-action list-group-item-dark-custom d-flex justify-content-between align-items-center p-3"><div><strong class="text-white">Tesla Inc.</strong> <span class="text-bright-silver small d-block">NASDAQ: TSLA</span></div> <span class="badge bg-secondary">Stream</span></button>
+                        <button onclick="loadMainChart('SPX')" class="list-group-item list-group-item-action list-group-item-dark-custom d-flex justify-content-between align-items-center p-3"><div><strong class="text-white">S&P 500 Index</strong> <span class="text-bright-silver small d-block">Index: SPX</span></div> <span class="badge bg-dark text-neon-cyan border border-info">Index</span></button>
+                        <button onclick="loadMainChart('DJI')" class="list-group-item list-group-item-action list-group-item-dark-custom d-flex justify-content-between align-items-center p-3"><div><strong class="text-white">Dow Jones Industrial</strong> <span class="text-bright-silver small d-block">Index: DJI</span></div> <span class="badge bg-dark text-neon-cyan border border-info">Index</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globalEntry = 0;
+    let globalStop = 0;
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const tickerVal = document.getElementById('ticker').value.toUpperCase();
+        
+        loadMainChart(tickerVal);
+        document.getElementById('m-analysis').innerText = "Analyzing security framework architecture indices...";
+
+        fetch('/analyze', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if(data.error) { document.getElementById('m-analysis').innerText = data.error; return; }
+            
+            document.getElementById('m-price').innerText = "$" + data.current_price;
+            document.getElementById('m-buy').innerText = "$" + data.buy_limit;
+            document.getElementById('m-stop').innerText = "$" + data.stop_loss;
+            document.getElementById('m-profit').innerText = "$" + data.take_profit;
+            
+            document.getElementById('m-atr').innerText = data.atr;
+            document.getElementById('m-pivot').innerText = data.pivot_point;
+            document.getElementById('m-s1').innerText = data.support_1;
+            document.getElementById('m-r1').innerText = data.resistance_1;
+            document.getElementById('m-analysis').innerText = data.analysis;
+
+            document.getElementById('m-fastma').innerText = data.fast_ma_val ? "$" + data.fast_ma_val : "0.00";
+            document.getElementById('m-slowma').innerText = data.slow_ma_val ? "$" + data.slow_ma_val : "0.00";
+            document.getElementById('m-signal').innerText = data.strategy_signal ? data.strategy_signal : "NEUTRAL";
+
+            // NEW INDICATOR RESOLUTION OVERLAYS
+            document.getElementById('m-rsi').innerText = data.rsi_val !== undefined ? data.rsi_val : "0.00";
+            document.getElementById('m-macd').innerText = data.macd_val !== undefined ? data.macd_val : "0.00";
+
+            if (data.bb_upper_val && data.bb_lower_val) {
+                document.getElementById('m-bb').innerText = "U: " + data.bb_upper_val + " / L: " + data.bb_lower_val;
+            } else {
+                document.getElementById('m-bb').innerText = "U: 0.00 / L: 0.00";
+            }
+
+            globalEntry = data.buy_limit;
+            globalStop = data.stop_loss;
+            calculatePositionSize();
+        });
+    });
+
+    function calculatePositionSize() {
+        const balance = parseFloat(document.getElementById('acc_balance').value) || 0;
+        const riskPct = parseFloat(document.getElementById('risk_percent').value) || 0;
+        
+        if (globalEntry > 0 && globalStop > 0 && globalEntry !== globalStop) {
+            const maxRiskCash = balance * (riskPct / 100);
+            const riskPerShare = Math.abs(globalEntry - globalStop);
+            const totalShares = Math.floor(maxRiskCash / riskPerShare);
+            
+            document.getElementById('calc-shares').innerText = totalShares + " Units";
+            document.getElementById('calc-risk-cash').innerText = "$" + maxRiskCash.toFixed(2);
+        }
+    }
+
+    document.getElementById('acc_balance').addEventListener('input', calculatePositionSize);
+    document.getElementById('risk_percent').addEventListener('input', calculatePositionSize);
+</script>
+{% endblock %}

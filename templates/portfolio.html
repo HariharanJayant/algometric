@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% set active_page = 'portfolio' %}
+{% block title %}Backtest Simulation Matrix - AlgoMetrics Terminal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-5 col-12 mb-4">
+        <div class="glass-card">
+            <h4 class="terminal-header mb-3">🔬 Dual MA Simulation Engine</h4>
+            <form id="backtestForm">
+                <div class="mb-3">
+                    <label class="form-label small control-label-bright">STRATEGY BACKTEST TARGET</label>
+                    <input type="text" class="form-control text-uppercase fw-bold text-neon-blue" id="b_ticker" value="NVDA">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small control-label-bright">FAST SMA LENGTH</label>
+                        <input type="number" class="form-control" id="b_fast" value="9">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small control-label-bright">SLOW SMA LENGTH</label>
+                        <input type="number" class="form-control" id="b_slow" value="21">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small control-label-bright">HISTORICAL DATA WINDOW</label>
+                    <select class="form-control" id="b_window">
+                        <option value="90">Past 90 Days</option>
+                        <option value="180" selected>Past 180 Days</option>
+                        <option value="365">Past 365 Days</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-info w-100 fw-bold text-black" style="box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">⚡ Run Quantitative Strategy Simulation</button>
+            </form>
+        </div>
+
+        <div class="glass-card">
+            <h4 class="terminal-header mb-3">📊 Model Parameters</h4>
+            <div class="p-3 nested-dark-well rounded-3 small">
+                <div class="text-bright-silver mb-1">Execution Engine: Dual SMA Vector Cross</div>
+                <div class="text-bright-silver mb-1">Risk Overlays: Active (RSI, Bollinger Bands, MACD, ATR)</div>
+                <div class="text-bright-silver mb-1">Base Capitalization: $1,000.00 Fixed</div>
+                <div class="text-bright-silver">Trade Trigger Order Entry: Close of Bar</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7 col-12">
+        <div class="row text-center g-2 mb-3">
+            <div class="col-md-4 col-12">
+                <div class="glass-card p-3 m-0"><div class="metric-label">Strategy Return</div><div id="sim-return" class="metric-value text-neon-green">0.00%</div></div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="glass-card p-3 m-0"><div class="metric-label">Buy & Hold Return</div><div id="sim-baseline" class="metric-value text-neon-blue">0.00%</div></div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="glass-card p-3 m-0"><div class="metric-label">Total Signals</div><div id="sim-trades" class="metric-value text-neon-cyan">0</div></div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h4 class="terminal-header mb-3">📋 Backtest Historical Signal Feed</h4>
+            <div class="table-responsive" style="max-height: 310px; overflow-y: auto; border: 1px solid #4b5563; border-radius: 8px;">
+                <table class="table table-dark table-striped table-hover align-middle border-0 m-0 small" id="simTable">
+                    <thead>
+                        <tr>
+                            <th class="text-primary p-3" style="background-color: #1f2937;">Date</th>
+                            <th class="text-bright-silver p-3" style="background-color: #1f2937;">Action</th>
+                            <th class="text-bright-silver p-3" style="background-color: #1f2937;">Close</th>
+                            <th class="text-bright-silver p-3" style="background-color: #1f2937;">RSI (14)</th>
+                            <th class="text-bright-silver p-3" style="background-color: #1f2937;">Volatility Bracket (ATR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5" class="text-center text-muted p-4">Awaiting simulation vector compile...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('backtestForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const payload = {
+            ticker: document.getElementById('b_ticker').value.toUpperCase(),
+            fast: parseInt(document.getElementById('b_fast').value),
+            slow: parseInt(document.getElementById('b_slow').value),
+            window: parseInt(document.getElementById('b_window').value)
+        };
+
+        fetch('/run_backtest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            
+            document.getElementById('sim-return').innerText = data.strategy_perf.toFixed(2) + "%";
+            document.getElementById('sim-baseline').innerText = data.baseline_perf.toFixed(2) + "%";
+            document.getElementById('sim-trades').innerText = data.total_signals;
+
+            const tbody = document.querySelector('#simTable tbody');
+            tbody.innerHTML = "";
+            
+            if (data.log.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5' class='text-center text-warning p-4'>No strategy crossovers occurred during this timeframe window.</td></tr>";
+                return;
+            }
+
+            data.log.reverse().forEach(row => {
+                const badgeClass = row.signal === "BUY" ? "bg-success" : "bg-danger";
+                
+                const historicalRsi = row.rsi !== undefined ? row.rsi.toFixed(1) : "N/A";
+                const historicalAtr = row.atr !== undefined ? "$" + row.atr.toFixed(2) : "N/A";
+
+                tbody.innerHTML += `<tr>
+                    <td class="p-3">${row.date}</td>
+                    <td class="p-3"><span class="badge ${badgeClass} text-black fw-bold">${row.signal}</span></td>
+                    <td class="text-white p-3">$${row.price.toFixed(2)}</td>
+                    <td class="text-neon-cyan p-3">${historicalRsi}</td>
+                    <td class="text-muted p-3">${historicalAtr}</td>
+                </tr>`;
+            });
+        });
+    });
+</script>
+{% endblock %}

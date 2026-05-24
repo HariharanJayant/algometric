@@ -1,0 +1,7 @@
+Flask
+requests
+Werkzeug
+pandas
+numpy
+ta
+gunicorn
