@@ -1,48 +1,53 @@
 {% extends 'base.html' %}
 {% set active_page = 'home' %}
-{% block title %}Simulation Dashboard{% endblock %}
+{% block title %}Terminal Dashboard Framework{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 border-secondary">
+    <h3 class="m-0 text-uppercase tracking-wider text-white" style="font-size: 1.1rem; letter-spacing: 0.1em;">🟢 TERMINAL MATRIX FRAME</h3>
+    <span class="badge bg-dark text-info border border-info px-3 py-2 small fw-bold">💻 CORE ENGINE: OPERATIONAL</span>
+</div>
+
 <div class="row">
-    <div class="col-lg-5">
-        <div class="glass-card">
-            <h4 class="terminal-header mb-3">🎮 Dual MA Simulation Engine</h4>
+    <div class="col-lg-5" style="position: relative; z-index: 50;">
+        <div class="glass-card mb-3">
+            <h4 class="terminal-header mb-3">🔬 Dual MA Simulation Engine</h4>
             <form id="simulationForm">
                 <div class="mb-3">
-                    <label class="form-label small text-muted text-uppercase">Strategy Backtest Target</label>
-                    <input type="text" class="form-control fw-bold text-info" id="sim_ticker" name="ticker" value="MSFT">
+                    <label class="form-label small text-muted text-uppercase fw-bold tracking-wide">Strategy Backtest Target</label>
+                    <input type="text" class="form-control form-control-lg fw-bold text-info bg-black text-uppercase border-secondary" id="sim_ticker" name="ticker" value="MSFT">
                 </div>
                 
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label small text-muted text-uppercase">Fast SMA Length</label>
-                        <input type="number" class="form-control" id="fast_length" name="fast_length" value="9">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Fast SMA Length</label>
+                        <input type="number" class="form-control bg-black text-white border-secondary fw-bold" id="fast_length" name="fast_length" value="9">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small text-muted text-uppercase">Slow SMA Length</label>
-                        <input type="number" class="form-control" id="slow_length" name="slow_length" value="21">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Slow SMA Length</label>
+                        <input type="number" class="form-control bg-black text-white border-secondary fw-bold" id="slow_length" name="slow_length" value="21">
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small text-muted text-uppercase">Historical Data Window</label>
-                    <select class="form-select" id="data_window" name="data_window">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Historical Data Window</label>
+                    <select class="form-select bg-black text-white border-secondary" id="data_window" name="data_window">
                         <option value="180" selected>Past 180 Days</option>
                         <option value="365">Past 365 Days</option>
                         <option value="90">Past 90 Days</option>
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-info btn-lg w-100 fw-bold text-dark shadow-sm">⚡ Run Quantitative Strategy Simulation</button>
+                <button type="submit" id="simulationBtn" class="btn btn-info btn-lg w-100 fw-bold text-dark shadow-sm border-0 mt-2 py-3" style="position: relative !important; z-index: 9999 !important; pointer-events: auto !important; cursor: pointer !important; background-color: #00d2ff !important;">⚡ Run Quantitative Strategy Simulation</button>
             </form>
         </div>
 
         <div class="glass-card">
             <h4 class="terminal-header mb-2">📊 Model Parameters</h4>
-            <div class="p-3 nested-dark-well rounded-3 small text-muted" style="line-height: 1.8;">
+            <div class="p-3 nested-dark-well rounded-3 small text-muted" style="line-height: 1.9; background-color: #0b0f17;">
                 <div>Execution Engine: <span class="text-white fw-bold">Dual SMA Vector Cross</span></div>
-                <div>Risk Overlays: <span class="text-white">Active (RSI, Bollinger Bands, MACD, ATR)</span></div>
-                <div>Base Capitalization: <span class="text-neon-cyan">$1,000.00 Fixed</span></div>
+                <div>Risk Overlays: <span class="text-bright-silver">Active (RSI, Bollinger Bands, MACD, ATR)</span></div>
+                <div>Base Capitalization: <span class="text-neon-cyan fw-bold">$1,000.00 Fixed</span></div>
                 <div>Trade Trigger Order Entry: <span class="text-white">Close of Bar</span></div>
             </div>
         </div>
@@ -51,41 +56,41 @@
     <div class="col-lg-7">
         <div class="row text-center g-2 mb-3">
             <div class="col-4">
-                <div class="glass-card p-3 m-0">
-                    <div class="small text-muted mb-1 text-uppercase" style="font-size:0.7rem;">Strategy Return</div>
-                    <div id="stat-strat-return" class="h3 fw-bold text-neon-green">0.00%</div>
+                <div class="glass-card p-3 m-0" style="background-color: #0d131f;">
+                    <div class="small text-muted mb-1 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:0.05em;">Strategy Return</div>
+                    <div id="stat-strat-return" class="h3 fw-bold text-neon-green m-0">0.00%</div>
                 </div>
             </div>
             <div class="col-4">
-                <div class="glass-card p-3 m-0">
-                    <div class="small text-muted mb-1 text-uppercase" style="font-size:0.7rem;">Buy & Hold Return</div>
-                    <div id="stat-bh-return" class="h3 fw-bold text-neon-blue">0.00%</div>
+                <div class="glass-card p-3 m-0" style="background-color: #0d131f;">
+                    <div class="small text-muted mb-1 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:0.05em;">Buy & Hold Return</div>
+                    <div id="stat-bh-return" class="h3 fw-bold text-neon-blue m-0">0.00%</div>
                 </div>
             </div>
             <div class="col-4">
-                <div class="glass-card p-3 m-0">
-                    <div class="small text-muted mb-1 text-uppercase" style="font-size:0.7rem;">Total Signals</div>
-                    <div id="stat-signals" class="h3 fw-bold text-info">0</div>
+                <div class="glass-card p-3 m-0" style="background-color: #0d131f;">
+                    <div class="small text-muted mb-1 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:0.05em;">Total Signals</div>
+                    <div id="stat-signals" class="h3 fw-bold text-info m-0">0</div>
                 </div>
             </div>
         </div>
 
         <div class="glass-card">
             <h4 class="terminal-header mb-3">📋 Backtest Historical Signal Feed</h4>
-            <div class="table-responsive rounded-3 overflow-hidden" style="max-height: 350px; overflow-y: auto;">
+            <div class="table-responsive rounded-3 overflow-hidden border border-secondary" style="max-height: 380px; overflow-y: auto;">
                 <table class="table table-dark table-striped m-0 small align-middle">
-                    <thead>
-                        <tr class="text-muted border-bottom border-secondary" style="font-size: 0.75rem;">
-                            <th>Date</th>
-                            <th>Action</th>
-                            <th>Close</th>
-                            <th>RSI (14)</th>
-                            <th>Volatility Bracket (ATR)</th>
+                    <thead class="bg-black text-uppercase">
+                        <tr class="text-muted border-bottom border-secondary" style="font-size: 0.7rem; letter-spacing: 0.05em; background-color: #05070c;">
+                            <th class="py-3 px-3">Date</th>
+                            <th class="py-3">Action</th>
+                            <th class="py-3">Close</th>
+                            <th class="py-3">RSI (14)</th>
+                            <th class="py-3 px-3">Volatility Bracket (ATR)</th>
                         </tr>
                     </thead>
-                    <tbody id="signalTableBody">
+                    <tbody id="signalTableBody" style="background-color: #090d16;">
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Awaiting simulation vector compile...</td>
+                            <td colspan="5" class="text-center py-5 text-muted tracking-wide small text-uppercase">Awaiting simulation vector compile...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -95,11 +100,12 @@
 </div>
 
 <script>
+    // CORE ASYNC EVENT LISTENER ROUTING
     document.getElementById('simulationForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const tableBody = document.getElementById('signalTableBody');
-        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-info text-uppercase">Compiling Vector Rules Framework...</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-info text-uppercase fw-bold tracking-wider" style="letter-spacing:0.1em;">⚙️ Compiling Vector Rules Framework...</td></tr>`;
 
         const formData = new FormData(this);
 
@@ -107,44 +113,45 @@
         .then(res => res.json())
         .then(data => {
             if (data.error) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">${data.error}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger fw-bold py-5">⚠️ ${data.error}</td></tr>`;
                 return;
             }
 
-            // Upgrading metric badge layouts
+            // Bind values directly back to top tracking indicator blocks
             document.getElementById('stat-strat-return').innerText = data.strategy_return;
             document.getElementById('stat-bh-return').innerText = data.buy_hold_return;
             document.getElementById('stat-signals').innerText = data.total_signals;
 
-            // Handle text coloring based on performance outcomes
+            // Handle active class context coloring styles
             if (parseFloat(data.strategy_return) >= 0) {
-                document.getElementById('stat-strat-return').className = "h3 fw-bold text-neon-green";
+                document.getElementById('stat-strat-return').className = "h3 fw-bold text-neon-green m-0";
             } else {
-                document.getElementById('stat-strat-return').className = "h3 fw-bold text-danger";
+                document.getElementById('stat-strat-return').className = "h3 fw-bold text-danger m-0";
             }
 
-            // Build out individual historical rows dynamically
             if (data.signals.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Simulation ran completely but no crossover vectors were triggered.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted small text-uppercase">Simulation complete: No crossover parameters crossed vectors.</td></tr>`;
                 return;
             }
 
+            // Draw data feed rows dynamically inside the display table element
             tableBody.innerHTML = "";
             data.signals.forEach(row => {
-                const badgeColor = row.action === 'BUY' ? 'bg-success' : 'bg-danger';
+                const badgeColor = row.action === 'BUY' ? 'bg-success text-white' : 'bg-danger text-white';
                 const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid #1e293b";
                 tr.innerHTML = `
-                    <td class="text-bright-silver fw-bold">${row.date}</td>
-                    <td><span class="badge ${badgeColor}">${row.action}</span></td>
+                    <td class="text-bright-silver fw-bold py-3 px-3">${row.date}</td>
+                    <td><span class="badge ${badgeColor} px-2.5 py-1.5 fw-bold text-uppercase" style="font-size:0.65rem; tracking-spacing:0.05em;">${row.action}</span></td>
                     <td class="text-white fw-bold">${row.close}</td>
-                    <td class="text-neon-cyan">${row.rsi}</td>
-                    <td>${row.atr}</td>
+                    <td class="text-neon-cyan fw-bold">${row.rsi}</td>
+                    <td class="text-muted py-3 px-3">${row.atr}</td>
                 `;
                 tableBody.appendChild(tr);
             });
         })
         .catch(err => {
-            tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Network Connection Break: ${err}</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-5 fw-bold">🚨 SYSTEM CRASH: CONNECTION TERMINATED -> ${err}</td></tr>`;
         });
     });
 </script>
