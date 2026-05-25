@@ -145,7 +145,7 @@
     let globalEntry = 0;
     let globalStop = 0;
 
-    // ACTION 1: REAL-TIME SCANNER AGENT
+    // === SECTION 1: REAL-TIME MULTIMODAL SCANNER ACTION ===
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const tickerInput = document.getElementById('ticker');
@@ -189,38 +189,65 @@
         });
     });
 
-    // ACTION 2: HISTORICAL SIMULATION PIPELINE ENGINE
-    document.getElementById('simulationBtn').addEventListener('click', function() {
-        const tickerVal = document.getElementById('ticker').value.toUpperCase();
-        if (!tickerVal) {
-            document.getElementById('m-analysis').innerText = "Aborted: Target ticker field must contain a valid asset symbol token.";
-            return;
-        }
-
-        document.getElementById('m-analysis').innerText = `Running 1-Year Historical Backtest Simulation Matrix for ${tickerVal}...`;
-
-        const formData = new FormData();
-        formData.append('ticker', tickerVal);
-
-        fetch('/simulate', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) { document.getElementById('m-analysis').innerText = data.error; return; }
+    // === SECTION 2: HISTORICAL BACKTEST ENGINE ACTION ===
+    // This script will listen for the click on your backtest tab button
+    document.addEventListener('click', function(e) {
+        // We use a general listener just in case the button is re-rendered dynamically by tabs
+        if (e.target && e.target.id === 'simulationBtn') {
             
-            document.getElementById('m-analysis').innerHTML = `
-                <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
-                ------------------------------------------------------------<br>
-                <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
-                <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
-                <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
-                <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
-            `;
-        })
-        .catch(err => {
-            document.getElementById('m-analysis').innerText = "Simulation pipeline connection error: " + err;
-        });
+            // Try to find the ticker value. We'll look for 'ticker' first, or fallback to any text input if needed.
+            const tickerField = document.getElementById('ticker');
+            const tickerVal = tickerField ? tickerField.value.toUpperCase().strip() : '';
+
+            if (!tickerVal || tickerVal === "") {
+                // If we can't find it in 'ticker', check if your backtest section has its own input
+                const altTickerField = document.querySelector('[id*="ticker"]'); 
+                if (altTickerField && altTickerField.value) {
+                    tickerVal = altTickerField.value.toUpperCase().strip();
+                }
+            }
+
+            if (!tickerVal) {
+                alert("Aborted: Please ensure a Target Ticker Symbol is typed into your command box.");
+                return;
+            }
+
+            // Find your green feedback log box to print progress updates
+            const outputLog = document.getElementById('m-analysis') || document.querySelector('[id*="analysis"]');
+            if (outputLog) {
+                outputLog.innerText = `Connecting to Core... Running 1-Year Historical Backtest Simulation for ${tickerVal}...`;
+            }
+
+            const formData = new FormData();
+            formData.append('ticker', tickerVal);
+
+            fetch('/simulate', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    if (outputLog) outputLog.innerText = data.error;
+                    return;
+                }
+                
+                // Print the clean, formatted metrics directly into your green text terminal container!
+                if (outputLog) {
+                    outputLog.innerHTML = `
+                        <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
+                        ------------------------------------------------------------<br>
+                        <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
+                        <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
+                        <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
+                        <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
+                    `;
+                }
+            })
+            .catch(err => {
+                if (outputLog) outputLog.innerText = "Simulation pipeline connection error: " + err;
+            });
+        }
     });
 
+    // === SECTION 3: RISK ENGINE UTILITIES ===
     function calculatePositionSize() {
         const balance = parseFloat(document.getElementById('acc_balance').value) || 0;
         const riskPct = parseFloat(document.getElementById('risk_percent').value) || 0;
@@ -235,7 +262,11 @@
         }
     }
 
-    document.getElementById('acc_balance').addEventListener('input', calculatePositionSize);
-    document.getElementById('risk_percent').addEventListener('input', calculatePositionSize);
+    if(document.getElementById('acc_balance')) {
+        document.getElementById('acc_balance').addEventListener('input', calculatePositionSize);
+    }
+    if(document.getElementById('risk_percent')) {
+        document.getElementById('risk_percent').addEventListener('input', calculatePositionSize);
+    }
 </script>
 {% endblock %}
