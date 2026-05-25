@@ -84,7 +84,7 @@
 
             <div class="mt-4 p-3 rounded-3" style="background-color: #111827; border: 1px dashed #3b82f6;">
                 <h5 class="small fw-bold text-uppercase text-neon-blue mb-3">📈 Backtest Strategy Matrix Sandbox</h5>
-                <button type="button" id="simulationBtn" class="btn btn-outline-info btn-md fw-bold w-100 mb-2">📊 Run 1-Year Quantitative Strategy Simulation</button>
+                <button type="button" id="simulationBtn" onclick="runSimulation()" class="btn btn-outline-info btn-md fw-bold w-100 mb-2">📊 Run 1-Year Quantitative Strategy Simulation</button>
             </div>
 
             <div class="mt-4">
@@ -189,57 +189,47 @@
         });
     });
 
-    // === SECTION 2: HISTORICAL BACKTEST ENGINE ACTION ===
-    document.addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'simulationBtn') {
-            
-            const tickerField = document.getElementById('ticker');
-            let tickerVal = tickerField ? tickerField.value.toUpperCase().trim() : '';
+    // === SECTION 2: FORCED DIRECT BACKTEST SIMULATION ENGINE ===
+    function runSimulation() {
+        const tickerField = document.getElementById('ticker');
+        let tickerVal = tickerField ? tickerField.value.toUpperCase().trim() : '';
 
-            if (!tickerVal || tickerVal === "") {
-                const altTickerField = document.querySelector('[id*="ticker"]'); 
-                if (altTickerField && altTickerField.value) {
-                    tickerVal = altTickerField.value.toUpperCase().trim();
-                }
-            }
+        if (!tickerVal) {
+            alert("Aborted: Please ensure a Target Ticker Symbol is typed into your command box.");
+            return;
+        }
 
-            if (!tickerVal) {
-                alert("Aborted: Please ensure a Target Ticker Symbol is typed into your command box.");
+        const outputLog = document.getElementById('m-analysis');
+        if (outputLog) {
+            outputLog.innerText = `Connecting to Core... Running 1-Year Historical Backtest Simulation for ${tickerVal}...`;
+        }
+
+        const formData = new FormData();
+        formData.append('ticker', tickerVal);
+
+        fetch('/simulate', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                if (outputLog) outputLog.innerText = data.error;
                 return;
             }
-
-            const outputLog = document.getElementById('m-analysis') || document.querySelector('[id*="analysis"]');
+            
             if (outputLog) {
-                outputLog.innerText = `Connecting to Core... Running 1-Year Historical Backtest Simulation for ${tickerVal}...`;
+                outputLog.innerHTML = `
+                    <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
+                    ------------------------------------------------------------<br>
+                    <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
+                    <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
+                    <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
+                    <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
+                `;
             }
-
-            const formData = new FormData();
-            formData.append('ticker', tickerVal);
-
-            fetch('/simulate', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    if (outputLog) outputLog.innerText = data.error;
-                    return;
-                }
-                
-                if (outputLog) {
-                    outputLog.innerHTML = `
-                        <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
-                        ------------------------------------------------------------<br>
-                        <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
-                        <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
-                        <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
-                        <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
-                    `;
-                }
-            })
-            .catch(err => {
-                if (outputLog) outputLog.innerText = "Simulation pipeline connection error: " + err;
-            });
-        }
-    });
+        })
+        .catch(err => {
+            if (outputLog) outputLog.innerText = "Simulation pipeline connection error: " + err;
+        });
+    }
 
     // === SECTION 3: RISK ENGINE UTILITIES ===
     function calculatePositionSize() {
