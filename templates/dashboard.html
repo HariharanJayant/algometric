@@ -17,7 +17,8 @@
                     <input class="form-control" type="file" id="chart_image" name="chart_image" accept="image/*">
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm mb-2">🚀 Initialize Quant Scanning Matrix</button>
-                <button type="button" id="simulationBtn" class="btn btn-outline-info btn-md w-100 fw-bold">📊 Run Quantitative Strategy Simulation</button>
+                
+                <button type="button" id="simulationBtn" class="btn btn-outline-info btn-md w-100 fw-bold" style="position: relative; z-index: 10; pointer-events: auto;">📊 Run Quantitative Strategy Simulation</button>
             </form>
         </div>
 
@@ -141,11 +142,10 @@
     let globalEntry = 0;
     let globalStop = 0;
 
-    // PIPELINE 1: CORE ANALYSIS TRIGGER
+    // ACTION 1: CORE REAL-TIME MULTIMODAL SCANNER
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const tickerInput = document.getElementById('ticker');
-        const tickerVal = tickerInput.value.toUpperCase().strip;
         
         if (!tickerInput.value) {
             document.getElementById('m-analysis').innerText = "Aborted: Target Ticker input field required to map scanning matrices.";
@@ -186,7 +186,7 @@
         });
     });
 
-    // PIPELINE 2: STRATEGY BACKTESTING TRIGGER
+    // ACTION 2: BACKTEST STRATEGY EXECUTION ENGINE
     document.getElementById('simulationBtn').addEventListener('click', function() {
         const tickerVal = document.getElementById('ticker').value.toUpperCase();
         if (!tickerVal) {
@@ -204,7 +204,7 @@
         .then(data => {
             if (data.error) { document.getElementById('m-analysis').innerText = data.error; return; }
             
-            // Format simulation metrics cleanly inside the main feedback terminal
+            // Outputs clean execution stats straight into your real-time green text box layout!
             document.getElementById('m-analysis').innerHTML = `
                 <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
                 ------------------------------------------------------------<br>
@@ -213,6 +213,9 @@
                 <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
                 <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
             `;
+        })
+        .catch(err => {
+            document.getElementById('m-analysis').innerText = "Simulation pipeline connection error: " + err;
         });
     });
 
