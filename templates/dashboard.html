@@ -190,20 +190,19 @@
     });
 
     // === SECTION 2: HISTORICAL BACKTEST ENGINE ACTION ===
-    // This script will listen for the click on your backtest tab button
+    // Listens to the whole document so it catches the click even when tabs change
     document.addEventListener('click', function(e) {
-        // We use a general listener just in case the button is re-rendered dynamically by tabs
         if (e.target && e.target.id === 'simulationBtn') {
             
-            // Try to find the ticker value. We'll look for 'ticker' first, or fallback to any text input if needed.
+            // Look for your primary ticker text box
             const tickerField = document.getElementById('ticker');
-            const tickerVal = tickerField ? tickerField.value.toUpperCase().strip() : '';
+            let tickerVal = tickerField ? tickerField.value.toUpperCase().trim() : '';
 
+            // If it's empty, try to find any alternative ticker box on the active tab layout
             if (!tickerVal || tickerVal === "") {
-                // If we can't find it in 'ticker', check if your backtest section has its own input
                 const altTickerField = document.querySelector('[id*="ticker"]'); 
                 if (altTickerField && altTickerField.value) {
-                    tickerVal = altTickerField.value.toUpperCase().strip();
+                    tickerVal = altTickerField.value.toUpperCase().trim();
                 }
             }
 
@@ -212,7 +211,7 @@
                 return;
             }
 
-            // Find your green feedback log box to print progress updates
+            // Find your green display log box to output results
             const outputLog = document.getElementById('m-analysis') || document.querySelector('[id*="analysis"]');
             if (outputLog) {
                 outputLog.innerText = `Connecting to Core... Running 1-Year Historical Backtest Simulation for ${tickerVal}...`;
@@ -229,7 +228,7 @@
                     return;
                 }
                 
-                // Print the clean, formatted metrics directly into your green text terminal container!
+                // Delivers clear metrics right onto your active viewport layout
                 if (outputLog) {
                     outputLog.innerHTML = `
                         <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
