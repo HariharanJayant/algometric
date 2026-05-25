@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from google import genai
+from google.genai import types
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -9,7 +10,6 @@ import ta
 app = Flask(__name__)
 
 # Initialize the Gemini Client
-# Note: Render automatically picks up your GEMINI_API_KEY if you set it in their dashboard environment variables
 api_key = os.environ.get("GEMINI_API_KEY", "YOUR_LOCAL_API_KEY_FALLBACK")
 client = genai.Client(api_key=api_key)
 
@@ -28,7 +28,7 @@ def analyze():
     if not ticker_symbol:
         ticker_symbol = 'NVDA'
 
-    print(f"Initializing Quantitative Scan Matrix Sequence for Target: {ticker_symbol}")
+    print(f"Initializing Multimodal Quantitative Ingestion Sequence for Target: {ticker_symbol}")
 
     try:
         # 2. Fetch live stock data framework from yfinance
@@ -89,7 +89,10 @@ def analyze():
         stop_loss = round(current_price - (2 * atr_val), 2)
         take_profit = round(current_price + (3 * atr_val), 2)
 
-        # 4. Generate AI Prompt Dynamic Context Matrix
+        # 4. Handle the Screenshot Upload File Pipeline
+        uploaded_file = request.files.get('chart_image')
+        
+        # Base contents list with the data prompt text
         ai_prompt = f"""
         Perform a professional quantitative technical analysis review for asset ticker symbol: {ticker_symbol}.
         Current Market Metrics:
@@ -100,17 +103,32 @@ def analyze():
         - Momentum: RSI(14) is at {rsi_val} and MACD is at {macd_val}
         - Volatility Envelope: Bollinger Upper: ${bb_upper} / Lower: ${bb_lower}
 
+        If an image chart is provided alongside this data, analyze its visual structure (trendlines, candlestick shapes, chart patterns) to confirm or reject these numerical metrics. 
         Provide a sharp, 3-sentence institutional market execution summary covering current structural direction and immediate risk zones.
         """
+        
+        contents_payload = [ai_prompt]
 
-        # Call Gemini text engine safely
+        if uploaded_file and uploaded_file.filename != '':
+            # Read image bytes and format them for the Google GenAI SDK
+            image_bytes = uploaded_file.read()
+            mime_type = uploaded_file.content_type or 'image/png'
+            
+            image_part = types.Part.from_bytes(
+                data=image_bytes,
+                mime_type=mime_type
+            )
+            contents_payload.append(image_part)
+            print("Screenshot detected and appended to the model payload context matrix.")
+
+        # 5. Call Gemini Multimodal Engine
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=ai_prompt,
+            contents=contents_payload,
         )
         ai_response_text = response.text.strip()
 
-        # 5. Return JSON payload back to front-end dashboard scripts
+        # 6. Return JSON payload back to front-end dashboard scripts
         return jsonify({
             'current_price': current_price,
             'buy_limit': buy_limit,
