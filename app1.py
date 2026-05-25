@@ -152,5 +152,87 @@ def analyze():
         print(f"Execution Exception Crash: {str(e)}")
         return jsonify({'error': f"System pipeline failure: {str(e)}"})
 
+
+# === 🛠️ ADDED COUPLING: STRATEGY SIMULATION ROUTE FOR TAB 2 ===
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    # Grabs input parameters directly from your HTML elements
+    ticker_symbol = request.form.get('ticker', 'MSFT').upper().strip()
+    fast_length = int(request.form.get('fast_length', 9))
+    slow_length = int(request.form.get('slow_length', 21))
+    data_window = request.form.get('data_window', '180')
+
+    # Convert select element value to historical period syntax
+    period_map = {"180": "6mo", "365": "1y", "90": "3mo"}
+    yf_period = period_map.get(data_window, "6mo")
+
+    try:
+        stock = yf.Ticker(ticker_symbol)
+        df = stock.history(period=yf_period, interval="1d")
+
+        if df.empty:
+            return jsonify({'error': f"No historical trace records for {ticker_symbol}."})
+
+        # Vector indicator mappings
+        df['Fast_MA'] = ta.trend.sma_indicator(df['Close'], window=fast_length)
+        df['Slow_MA'] = ta.trend.sma_indicator(df['Close'], window=slow_length)
+        df['RSI'] = ta.momentum.rsi(df['Close'], window=14)
+        df['ATR'] = ta.volatility.average_true_range(df['High'], df['Low'], df['Close'], window=14)
+        df = df.dropna()
+
+        initial_capital = 1000.0
+        capital = initial_capital
+        position = 0
+        total_signals = 0
+        signals_feed = []
+
+        # Benchmark Profile Performance Mapping
+        bh_shares = initial_capital / df['Close'].iloc[0]
+        bh_final_val = bh_shares * df['Close'].iloc[-1]
+        bh_return_pct = round(((bh_final_val - initial_capital) / initial_capital) * 100, 2)
+
+        # Loop processing historical rules arrays
+        for i in range(1, len(df)):
+            prev_fast, prev_slow = df['Fast_MA'].iloc[i-1], df['Slow_MA'].iloc[i-1]
+            curr_fast, curr_slow = df['Fast_MA'].iloc[i], df['Slow_MA'].iloc[i]
+            price = round(df['Close'].iloc[i], 2)
+            date_str = df.index[i].strftime('%Y-%m-%d')
+            rsi_val = round(df['RSI'].iloc[i], 2) if not pd.isna(df['RSI'].iloc[i]) else 50.0
+            atr_val = round(df['ATR'].iloc[i], 2) if not pd.isna(df['ATR'].iloc[i]) else 0.0
+
+            # Buy Vector Rule
+            if prev_fast <= prev_slow and curr_fast > curr_slow and position == 0:
+                position = capital / price
+                capital = 0
+                total_signals += 1
+                signals_feed.append({
+                    'date': date_str, 'action': 'BUY', 'close': f"${price}", 'rsi': rsi_val, 'atr': atr_val
+                })
+            
+            # Sell Vector Rule
+            elif prev_fast >= prev_slow and curr_fast < curr_slow and position > 0:
+                capital = position * price
+                position = 0
+                total_signals += 1
+                signals_feed.append({
+                    'date': date_str, 'action': 'SELL', 'close': f"${price}", 'rsi': rsi_val, 'atr': atr_val
+                })
+
+        if position > 0:
+            capital = position * df['Close'].iloc[-1]
+
+        strategy_return_pct = round(((capital - initial_capital) / initial_capital) * 100, 2)
+
+        return jsonify({
+            'success': True,
+            'strategy_return': f"{strategy_return_pct}%",
+            'buy_hold_return': f"{bh_return_pct}%",
+            'total_signals': total_signals,
+            'signals': signals_feed
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
