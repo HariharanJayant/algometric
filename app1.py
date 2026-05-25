@@ -21,7 +21,7 @@ def index():
 def portfolio():
     return render_template('portfolio.html')
 
-# === PIPELINE 1: LIVE SCANNING & SCREENSHOT ANALYSIS ===
+# === PIPELINE 1: REAL-TIME SCANNING & MULTIMODAL SCREENSHOT ANALYSIS ===
 @app.route('/analyze', methods=['POST'])
 def analyze():
     ticker_symbol = request.form.get('ticker', '').upper().strip()
@@ -117,7 +117,6 @@ def analyze():
 def simulate():
     ticker_symbol = request.form.get('ticker', 'MSFT').upper().strip()
     
-    # Safely convert UI lengths into integers
     try:
         fast_length = int(request.form.get('fast_length', 9))
         slow_length = int(request.form.get('slow_length', 21))
@@ -126,7 +125,6 @@ def simulate():
         
     data_window = request.form.get('data_window', '180')
 
-    # Convert select dropdown days to yfinance structural tracking windows
     period_map = {"180": "6mo", "365": "1y", "90": "3mo"}
     yf_period = period_map.get(data_window, "6mo")
 
@@ -137,28 +135,22 @@ def simulate():
         if df.empty:
             return jsonify({'error': f"Insufficient dataset framework tracking found for target symbol {ticker_symbol}."})
 
-        # Base technical indicator array construction
         df['Fast_MA'] = ta.trend.sma_indicator(df['Close'], window=fast_length)
         df['Slow_MA'] = ta.trend.sma_indicator(df['Close'], window=slow_length)
         df['RSI'] = ta.momentum.rsi(df['Close'], window=14)
         df['ATR'] = ta.volatility.average_true_range(df['High'], df['Low'], df['Close'], window=14)
         df = df.dropna()
 
-        if len(df) < 2:
-            return jsonify({'error': 'Dataset frame size collapsed below technical loop limit parameters.'})
-
-        initial_capital = 1000.0  # Matches your UI $1,000 parameter display configuration
+        initial_capital = 1000.0  
         capital = initial_capital
         position = 0
         total_signals = 0
         signals_feed = []
 
-        # Calculate Buy & Hold benchmark profile values
         bh_shares = initial_capital / df['Close'].iloc[0]
         bh_final_val = bh_shares * df['Close'].iloc[-1]
         bh_return_pct = round(((bh_final_val - initial_capital) / initial_capital) * 100, 2)
 
-        # Loop through historical timeline rows
         for i in range(1, len(df)):
             prev_fast, prev_slow = df['Fast_MA'].iloc[i-1], df['Slow_MA'].iloc[i-1]
             curr_fast, curr_slow = df['Fast_MA'].iloc[i], df['Slow_MA'].iloc[i]
@@ -167,7 +159,6 @@ def simulate():
             rsi_val = round(df['RSI'].iloc[i], 2) if not pd.isna(df['RSI'].iloc[i]) else 50.0
             atr_val = round(df['ATR'].iloc[i], 2) if not pd.isna(df['ATR'].iloc[i]) else 0.0
 
-            # Buy Signal Vector Cross Logic
             if prev_fast <= prev_slow and curr_fast > curr_slow and position == 0:
                 position = capital / price
                 capital = 0
@@ -175,8 +166,6 @@ def simulate():
                 signals_feed.append({
                     'date': date_str, 'action': 'BUY', 'close': f"${price}", 'rsi': rsi_val, 'atr': atr_val
                 })
-
-            # Sell Signal Vector Cross Logic
             elif prev_fast >= prev_slow and curr_fast < curr_slow and position > 0:
                 capital = position * price
                 position = 0
@@ -185,7 +174,6 @@ def simulate():
                     'date': date_str, 'action': 'SELL', 'close': f"${price}", 'rsi': rsi_val, 'atr': atr_val
                 })
 
-        # Re-verify and value closing portfolio data frames
         if position > 0:
             capital = position * df['Close'].iloc[-1]
 
