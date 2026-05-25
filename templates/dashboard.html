@@ -10,7 +10,7 @@
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label small control-label-bright">TARGET TICKER SYMBOL</label>
-                    <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-primary" id="ticker" name="ticker" placeholder="e.g., NVDA, AAPL">
+                    <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-primary" id="ticker" name="ticker" placeholder="e.g., NVDA, AAPL" value="NVDA">
                 </div>
                 <div class="mb-3">
                     <label class="form-label small control-label-bright">SCREENSHOT PIPELINE INGESTION</label>
@@ -82,8 +82,13 @@
                 <div class="col-md-4"><strong class="text-bright-silver">Bollinger Envelope:</strong> <span id="m-bb" class="fw-bold text-neon-blue">U: 0.00 / L: 0.00</span></div>
             </div>
 
+            <div class="mt-4 p-3 rounded-3" style="background-color: #111827; border: 1px dashed #3b82f6;">
+                <h5 class="small fw-bold text-uppercase text-neon-blue mb-3">📈 Backtest Strategy Matrix Sandbox</h5>
+                <button type="button" id="simulationBtn" class="btn btn-outline-info btn-md fw-bold w-100 mb-2">📊 Run 1-Year Quantitative Strategy Simulation</button>
+            </div>
+
             <div class="mt-4">
-                <h5 class="small fw-bold text-uppercase text-bright-silver tracking-wide">🧠 Real-Time AI Structure Matrix Feedback</h5>
+                <h5 class="small fw-bold text-uppercase text-bright-silver tracking-wide">🧠 Matrix Output / Backtest Analytics Log</h5>
                 <div id="m-analysis" class="p-3 bg-black text-neon-green rounded-3 small border" style="min-height: 80px; border-color: #4b5563 !important;">System operational. Awaiting algorithmic scan sequencing pipeline initialization...</div>
             </div>
         </div>
@@ -140,7 +145,7 @@
     let globalEntry = 0;
     let globalStop = 0;
 
-    // ACTION 1: CORE REAL-TIME MULTIMODAL SCANNER
+    // ACTION 1: REAL-TIME SCANNER AGENT
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const tickerInput = document.getElementById('ticker');
@@ -184,29 +189,37 @@
         });
     });
 
-    // NOTE ON ACTION 2 (BACKTEST ENGINE):
-    // If your execution button is sitting in your alternative tab file (e.g., backtest.html),
-    // make sure that button's click event sends data extracted from its own input selectors:
-    /*
+    // ACTION 2: HISTORICAL SIMULATION PIPELINE ENGINE
     document.getElementById('simulationBtn').addEventListener('click', function() {
-        const tickerVal = document.getElementById('sim_ticker').value.toUpperCase(); // target correct input id
-        if (!tickerVal) { return; }
+        const tickerVal = document.getElementById('ticker').value.toUpperCase();
+        if (!tickerVal) {
+            document.getElementById('m-analysis').innerText = "Aborted: Target ticker field must contain a valid asset symbol token.";
+            return;
+        }
 
-        let formData = new FormData();
+        document.getElementById('m-analysis').innerText = `Running 1-Year Historical Backtest Simulation Matrix for ${tickerVal}...`;
+
+        const formData = new FormData();
         formData.append('ticker', tickerVal);
-        formData.append('fast_length', document.getElementById('fast_length').value);
-        formData.append('slow_length', document.getElementById('slow_length').value);
 
         fetch('/simulate', { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
-            // Updated property keys mapping directly to your repaired python return matrix!
-            document.getElementById('display-box').innerHTML = `
-                Trades: ${data.total_trades} | Win Rate: ${data.win_rate} | Net: ${data.net_profit_pct}
+            if (data.error) { document.getElementById('m-analysis').innerText = data.error; return; }
+            
+            document.getElementById('m-analysis').innerHTML = `
+                <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
+                ------------------------------------------------------------<br>
+                <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
+                <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
+                <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
+                <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
             `;
+        })
+        .catch(err => {
+            document.getElementById('m-analysis').innerText = "Simulation pipeline connection error: " + err;
         });
     });
-    */
 
     function calculatePositionSize() {
         const balance = parseFloat(document.getElementById('acc_balance').value) || 0;
