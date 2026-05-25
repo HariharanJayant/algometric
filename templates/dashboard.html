@@ -17,8 +17,6 @@
                     <input class="form-control" type="file" id="chart_image" name="chart_image" accept="image/*">
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm mb-2">🚀 Initialize Quant Scanning Matrix</button>
-                
-                <button type="button" id="simulationBtn" class="btn btn-outline-info btn-md w-100 fw-bold" style="position: relative; z-index: 10; pointer-events: auto;">📊 Run Quantitative Strategy Simulation</button>
             </form>
         </div>
 
@@ -186,38 +184,29 @@
         });
     });
 
-    // ACTION 2: BACKTEST STRATEGY EXECUTION ENGINE
+    // NOTE ON ACTION 2 (BACKTEST ENGINE):
+    // If your execution button is sitting in your alternative tab file (e.g., backtest.html),
+    // make sure that button's click event sends data extracted from its own input selectors:
+    /*
     document.getElementById('simulationBtn').addEventListener('click', function() {
-        const tickerVal = document.getElementById('ticker').value.toUpperCase();
-        if (!tickerVal) {
-            document.getElementById('m-analysis').innerText = "Aborted: Enter a ticker symbol in the field above to run simulation loops.";
-            return;
-        }
+        const tickerVal = document.getElementById('sim_ticker').value.toUpperCase(); // target correct input id
+        if (!tickerVal) { return; }
 
-        document.getElementById('m-analysis').innerText = `Running 1-Year Historical Backtest Simulation Matrix for ${tickerVal}...`;
-
-        const formElement = document.getElementById('uploadForm');
-        const formData = new FormData(formElement);
+        let formData = new FormData();
+        formData.append('ticker', tickerVal);
+        formData.append('fast_length', document.getElementById('fast_length').value);
+        formData.append('slow_length', document.getElementById('slow_length').value);
 
         fetch('/simulate', { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
-            if (data.error) { document.getElementById('m-analysis').innerText = data.error; return; }
-            
-            // Outputs clean execution stats straight into your real-time green text box layout!
-            document.getElementById('m-analysis').innerHTML = `
-                <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
-                ------------------------------------------------------------<br>
-                <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
-                <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
-                <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
-                <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
+            // Updated property keys mapping directly to your repaired python return matrix!
+            document.getElementById('display-box').innerHTML = `
+                Trades: ${data.total_trades} | Win Rate: ${data.win_rate} | Net: ${data.net_profit_pct}
             `;
-        })
-        .catch(err => {
-            document.getElementById('m-analysis').innerText = "Simulation pipeline connection error: " + err;
         });
     });
+    */
 
     function calculatePositionSize() {
         const balance = parseFloat(document.getElementById('acc_balance').value) || 0;
