@@ -190,15 +190,12 @@
     });
 
     // === SECTION 2: HISTORICAL BACKTEST ENGINE ACTION ===
-    // Listens to the whole document so it catches the click even when tabs change
     document.addEventListener('click', function(e) {
         if (e.target && e.target.id === 'simulationBtn') {
             
-            // Look for your primary ticker text box
             const tickerField = document.getElementById('ticker');
             let tickerVal = tickerField ? tickerField.value.toUpperCase().trim() : '';
 
-            // If it's empty, try to find any alternative ticker box on the active tab layout
             if (!tickerVal || tickerVal === "") {
                 const altTickerField = document.querySelector('[id*="ticker"]'); 
                 if (altTickerField && altTickerField.value) {
@@ -211,7 +208,6 @@
                 return;
             }
 
-            // Find your green display log box to output results
             const outputLog = document.getElementById('m-analysis') || document.querySelector('[id*="analysis"]');
             if (outputLog) {
                 outputLog.innerText = `Connecting to Core... Running 1-Year Historical Backtest Simulation for ${tickerVal}...`;
@@ -228,7 +224,6 @@
                     return;
                 }
                 
-                // Delivers clear metrics right onto your active viewport layout
                 if (outputLog) {
                     outputLog.innerHTML = `
                         <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
