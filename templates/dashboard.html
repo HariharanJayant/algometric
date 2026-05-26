@@ -1,101 +1,144 @@
 {% extends 'base.html' %}
 {% set active_page = 'home' %}
-{% block title %}Scanner - AlgoMetrics Terminal{% endblock %}
+{% block title %}Scanner & Backtest Terminal - AlgoMetrics{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-4">
-        <div class="glass-card">
-            <h4 class="terminal-header mb-3">🎛️ Command Controls</h4>
-            <form id="uploadForm" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label class="form-label small control-label-bright">TARGET TICKER SYMBOL</label>
-                    <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-primary" id="ticker" name="ticker" placeholder="e.g., NVDA, AAPL" value="NVDA">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small control-label-bright">SCREENSHOT PIPELINE INGESTION</label>
-                    <input class="form-control" type="file" id="chart_image" name="chart_image" accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm mb-2">🚀 Initialize Quant Scanning Matrix</button>
-            </form>
-        </div>
+<ul class="nav nav-tabs mb-4" id="terminalTab" role="tablist" style="border-bottom: 1px solid #1f2937;">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold text-uppercase tracking-wide" id="scanner-tab" data-bs-toggle="tab" data-bs-target="#scanner-content" type="button" role="tab" aria-controls="scanner-content" aria-selected="true" style="letter-spacing: 0.05em;">
+            📡 Real-Time Scanner Matrix
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold text-uppercase tracking-wide" id="backtest-tab" data-bs-toggle="tab" data-bs-target="#backtest-content" type="button" role="tab" aria-controls="backtest-content" aria-selected="false" style="letter-spacing: 0.05em;">
+            📊 Backtesting Analytics
+        </button>
+    </li>
+</ul>
 
-        <div class="glass-card">
-            <h4 class="terminal-header mb-3">💼 Risk Position Engine</h4>
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <label class="form-label small control-label-bright">ACCOUNT BAL ($)</label>
-                    <input type="number" class="form-control" id="acc_balance" value="10000">
+<div class="tab-content" id="terminalTabContent">
+    
+    <div class="tab-pane fade show active" id="scanner-content" role="tabpanel" aria-labelledby="scanner-tab">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="glass-card">
+                    <h4 class="terminal-header mb-3">🎛️ Command Controls</h4>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label small control-label-bright">TARGET TICKER SYMBOL</label>
+                            <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-primary" id="ticker" name="ticker" placeholder="e.g., NVDA, AAPL" value="NVDA">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small control-label-bright">SCREENSHOT PIPELINE INGESTION</label>
+                            <input class="form-control" type="file" id="chart_image" name="chart_image" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm mb-2">🚀 Initialize Quant Scanning Matrix</button>
+                    </form>
                 </div>
-                <div class="col-6">
-                    <label class="form-label small control-label-bright">MAX RISK (%)</label>
-                    <input type="number" class="form-control" id="risk_percent" value="1" step="0.25">
+
+                <div class="glass-card">
+                    <h4 class="terminal-header mb-3">💼 Risk Position Engine</h4>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small control-label-bright">ACCOUNT BAL ($)</label>
+                            <input type="number" class="form-control" id="acc_balance" value="10000">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small control-label-bright">MAX RISK (%)</label>
+                            <input type="number" class="form-control" id="risk_percent" value="1" step="0.25">
+                        </div>
+                    </div>
+                    <div class="p-3 nested-dark-well rounded-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold text-bright-silver">Deployed Position Units:</span>
+                            <span id="calc-shares" class="fw-bold text-white">0 Units</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small fw-bold text-bright-silver">Total Risk Capital Allocation:</span>
+                            <span id="calc-risk-cash" class="fw-bold text-neon-red">$0.00</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="p-3 nested-dark-well rounded-3">
-                <div class="d-flex justify-content-between mb-1">
-                    <span class="small fw-bold text-bright-silver">Deployed Position Units:</span>
-                    <span id="calc-shares" class="fw-bold text-white">0 Units</span>
+
+            <div class="col-lg-8">
+                <div class="row text-center">
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="glass-card m-0 p-3"><div class="metric-label">Last Price</div><div id="m-price" class="metric-value text-neon-blue">$0.00</div></div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="glass-card m-0 p-3"><div class="metric-label">Buy Limit</div><div id="m-buy" class="metric-value text-neon-green">$0.00</div></div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="glass-card m-0 p-3"><div class="metric-label">Stop Loss</div><div id="m-stop" class="metric-value text-neon-red">$0.00</div></div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="glass-card m-0 p-3"><div class="metric-label">Take Profit</div><div id="m-profit" class="metric-value text-neon-cyan">$0.00</div></div>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <span class="small fw-bold text-bright-silver">Total Risk Capital Allocation:</span>
-                    <span id="calc-risk-cash" class="fw-bold text-neon-red">$0.00</span>
+
+                <div class="glass-card mt-3">
+                    <h4 class="terminal-header mb-3">📐 Quant Indicator Target Matrices</h4>
+                    <div class="row text-center nested-dark-well p-3 rounded-4 g-2 m-0 text-white">
+                        <div class="col-6 col-md-3"><strong class="text-bright-silver">ATR Value:</strong> <span id="m-atr" class="fw-bold text-white">0.0</span></div>
+                        <div class="col-6 col-md-3"><strong class="text-bright-silver">Pivot (P):</strong> <span id="m-pivot" class="fw-bold text-white">0.0</span></div>
+                        <div class="col-6 col-md-3"><strong class="text-bright-silver">Support (S1):</strong> <span id="m-s1" class="fw-bold text-neon-green">0.0</span></div>
+                        <div class="col-6 col-md-3"><strong class="text-bright-silver">Resist (R1):</strong> <span id="m-r1" class="fw-bold text-neon-red">0.0</span></div>
+                    </div>
+                    
+                    <div class="row text-center nested-dark-well p-2 rounded-4 g-2 m-0 text-white mt-2" style="border: 1px solid #4b5563;">
+                        <div class="col-md-4"><strong class="text-bright-silver">Fast MA (9):</strong> <span id="m-fastma" class="fw-bold text-neon-blue">0.00</span></div>
+                        <div class="col-md-4"><strong class="text-bright-silver">Slow MA (21):</strong> <span id="m-slowma" class="fw-bold text-neon-cyan">0.00</span></div>
+                        <div class="col-md-4"><strong class="text-bright-silver">Strategy Engine:</strong> <span id="m-signal" class="fw-bold text-warning">Awaiting Scan...</span></div>
+                    </div>
+
+                    <div class="row text-center nested-dark-well p-2 rounded-4 g-2 m-0 text-white mt-2" style="border: 1px solid #1f2937; background-color: #0b0f19 !important;">
+                        <div class="col-md-4"><strong class="text-bright-silver">RSI (14):</strong> <span id="m-rsi" class="fw-bold text-neon-cyan">0.00</span></div>
+                        <div class="col-md-4"><strong class="text-bright-silver">MACD Line:</strong> <span id="m-macd" class="fw-bold text-neon-green">0.00</span></div>
+                        <div class="col-md-4"><strong class="text-bright-silver">Bollinger Envelope:</strong> <span id="m-bb" class="fw-bold text-neon-blue">U: 0.00 / L: 0.00</span></div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5 class="small fw-bold text-uppercase text-bright-silver tracking-wide">🧠 Real-Time Scanner Analysis Output</h5>
+                        <div id="m-analysis" class="p-3 bg-black text-neon-green rounded-3 small border" style="min-height: 80px; border-color: #4b5563 !important;">System operational. Awaiting algorithmic scan sequencing pipeline initialization...</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-8">
-        <div class="row text-center">
-            <div class="col-md-3 col-6 mb-2">
-                <div class="glass-card m-0 p-3"><div class="metric-label">Last Price</div><div id="m-price" class="metric-value text-neon-blue">$0.00</div></div>
-            </div>
-            <div class="col-md-3 col-6 mb-2">
-                <div class="glass-card m-0 p-3"><div class="metric-label">Buy Limit</div><div id="m-buy" class="metric-value text-neon-green">$0.00</div></div>
-            </div>
-            <div class="col-md-3 col-6 mb-2">
-                <div class="glass-card m-0 p-3"><div class="metric-label">Stop Loss</div><div id="m-stop" class="metric-value text-neon-red">$0.00</div></div>
-            </div>
-            <div class="col-md-3 col-6 mb-2">
-                <div class="glass-card m-0 p-3"><div class="metric-label">Take Profit</div><div id="m-profit" class="metric-value text-neon-cyan">$0.00</div></div>
-            </div>
-        </div>
-
-        <div class="glass-card mt-3">
-            <h4 class="terminal-header mb-3">📐 Quant Indicator Target Matrices</h4>
-            <div class="row text-center nested-dark-well p-3 rounded-4 g-2 m-0 text-white">
-                <div class="col-6 col-md-3"><strong class="text-bright-silver">ATR Value:</strong> <span id="m-atr" class="fw-bold text-white">0.0</span></div>
-                <div class="col-6 col-md-3"><strong class="text-bright-silver">Pivot (P):</strong> <span id="m-pivot" class="fw-bold text-white">0.0</span></div>
-                <div class="col-6 col-md-3"><strong class="text-bright-silver">Support (S1):</strong> <span id="m-s1" class="fw-bold text-neon-green">0.0</span></div>
-                <div class="col-6 col-md-3"><strong class="text-bright-silver">Resist (R1):</strong> <span id="m-r1" class="fw-bold text-neon-red">0.0</span></div>
+    <div class="tab-pane fade" id="backtest-content" role="tabpanel" aria-labelledby="backtest-tab">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <h4 class="terminal-header mb-3">⚙️ Simulation Parameters</h4>
+                    <div class="mb-3">
+                        <label class="form-label small control-label-bright">ACTIVE BACKTEST TICKER</label>
+                        <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-info" id="backtest_ticker" placeholder="e.g., NVDA" value="NVDA">
+                        <div class="form-text text-muted small mt-1">Leave synced with Command Controls or execute standalone variations.</div>
+                    </div>
+                    
+                    <div class="p-3 rounded-3 mb-3" style="background-color: #111827; border: 1px dashed #3b82f6;">
+                        <h5 class="small fw-bold text-uppercase text-neon-blue mb-2">📈 Strategy Archetype</h5>
+                        <div class="small text-bright-silver mb-3">1-Year Moving Average Crossover System (Fast 9 / Slow 21 Epoch Loop)</div>
+                        <button type="button" id="simulationBtn" onclick="runSimulation()" class="btn btn-outline-info btn-md fw-bold w-100">📊 Run Quantitative Simulation</button>
+                    </div>
+                </div>
             </div>
             
-            <div class="row text-center nested-dark-well p-2 rounded-4 g-2 m-0 text-white mt-2" style="border: 1px solid #4b5563;">
-                <div class="col-md-4"><strong class="text-bright-silver">Fast MA (9):</strong> <span id="m-fastma" class="fw-bold text-neon-blue">0.00</span></div>
-                <div class="col-md-4"><strong class="text-bright-silver">Slow MA (21):</strong> <span id="m-slowma" class="fw-bold text-neon-cyan">0.00</span></div>
-                <div class="col-md-4"><strong class="text-bright-silver">Strategy Engine:</strong> <span id="m-signal" class="fw-bold text-warning">Awaiting Scan...</span></div>
-            </div>
-
-            <div class="row text-center nested-dark-well p-2 rounded-4 g-2 m-0 text-white mt-2" style="border: 1px solid #1f2937; background-color: #0b0f19 !important;">
-                <div class="col-md-4"><strong class="text-bright-silver">RSI (14):</strong> <span id="m-rsi" class="fw-bold text-neon-cyan">0.00</span></div>
-                <div class="col-md-4"><strong class="text-bright-silver">MACD Line:</strong> <span id="m-macd" class="fw-bold text-neon-green">0.00</span></div>
-                <div class="col-md-4"><strong class="text-bright-silver">Bollinger Envelope:</strong> <span id="m-bb" class="fw-bold text-neon-blue">U: 0.00 / L: 0.00</span></div>
-            </div>
-
-            <div class="mt-4 p-3 rounded-3" style="background-color: #111827; border: 1px dashed #3b82f6;">
-                <h5 class="small fw-bold text-uppercase text-neon-blue mb-3">📈 Backtest Strategy Matrix Sandbox</h5>
-                <button type="button" id="simulationBtn" onclick="runSimulation()" class="btn btn-outline-info btn-md fw-bold w-100 mb-2">📊 Run 1-Year Quantitative Strategy Simulation</button>
-            </div>
-
-            <div class="mt-4">
-                <h5 class="small fw-bold text-uppercase text-bright-silver tracking-wide">🧠 Matrix Output / Backtest Analytics Log</h5>
-                <div id="m-analysis" class="p-3 bg-black text-neon-green rounded-3 small border" style="min-height: 80px; border-color: #4b5563 !important;">System operational. Awaiting algorithmic scan sequencing pipeline initialization...</div>
+            <div class="col-md-8">
+                <div class="glass-card">
+                    <h4 class="terminal-header mb-3">🖥️ Quantitative Metrics Console Log</h4>
+                    <div id="backtest-log-output" class="p-3 bg-black text-neon-cyan rounded-3 small border font-monospace" style="min-height: 250px; border-color: #4b5563 !important; line-height: 1.6;">
+                        [SYSTEM]: Awaiting quantitative strategy matrix execution... Choose an asset parameters block and initialize simulation.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-2">
+<div class="row mt-4">
     <div class="col-12">
         <div class="glass-card">
             <h4 class="terminal-header mb-3">🌍 Live Institutional Chart Stream Matrix</h4>
@@ -145,6 +188,11 @@
     let globalEntry = 0;
     let globalStop = 0;
 
+    // Keep backtest ticker box synchronized with real-time scanner ticker automatically
+    document.getElementById('ticker').addEventListener('input', function() {
+        document.getElementById('backtest_ticker').value = this.value.toUpperCase();
+    });
+
     // === SECTION 1: REAL-TIME MULTIMODAL SCANNER ACTION ===
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -189,19 +237,26 @@
         });
     });
 
-    // === SECTION 2: FORCED DIRECT BACKTEST SIMULATION ENGINE ===
+    // === SECTION 2: INDEPENDENT BACKTEST SIMULATION TABS ENGINE ===
     function runSimulation() {
-        const tickerField = document.getElementById('ticker');
+        // Look inside the new active Backtest Tab input field
+        const tickerField = document.getElementById('backtest_ticker');
         let tickerVal = tickerField ? tickerField.value.toUpperCase().trim() : '';
 
+        // Fallback to primary scanner input if left blank
         if (!tickerVal) {
-            alert("Aborted: Please ensure a Target Ticker Symbol is typed into your command box.");
+            const primaryField = document.getElementById('ticker');
+            tickerVal = primaryField ? primaryField.value.toUpperCase().trim() : '';
+        }
+
+        if (!tickerVal) {
+            alert("Aborted: Please clarify a target backtest ticker symbol.");
             return;
         }
 
-        const outputLog = document.getElementById('m-analysis');
+        const outputLog = document.getElementById('backtest-log-output');
         if (outputLog) {
-            outputLog.innerText = `Connecting to Core... Running 1-Year Historical Backtest Simulation for ${tickerVal}...`;
+            outputLog.innerHTML = `[CONNECTING]: Establishing pipeline core socket...<br>[PROCESSING]: Executing 1-Year historical strategy simulations map for ${tickerVal}...`;
         }
 
         const formData = new FormData();
@@ -211,23 +266,26 @@
         .then(res => res.json())
         .then(data => {
             if (data.error) {
-                if (outputLog) outputLog.innerText = data.error;
+                if (outputLog) outputLog.innerText = "[ERROR]: " + data.error;
                 return;
             }
             
+            // Clean extraction output directly inside the tab dedicated terminal dashboard
             if (outputLog) {
                 outputLog.innerHTML = `
-                    <span class="text-neon-cyan">📊 BACKTEST RESULTS FOR ${tickerVal} (1-Year MA Crossover Strategy)</span><br>
-                    ------------------------------------------------------------<br>
-                    <strong class="text-white">Total Triggered Trades:</strong> ${data.total_trades}<br>
-                    <strong class="text-neon-green">Strategy Win Rate:</strong> ${data.win_rate}<br>
-                    <strong class="text-warning">Net Profit Strategy Return:</strong> ${data.net_profit_pct}<br>
-                    <strong class="text-neon-blue">Ending Simulated Account Balance:</strong> $${data.final_balance}
-                `;
+<span class="text-neon-cyan" style="font-size: 1.1rem; font-weight: bold;">📊 QUANT ANALYTICS METRICS REPORT: ${tickerVal}</span>
+<span class="text-muted">Strategy Model: 1-Year Historical Daily Exponential Moving Average System</span>
+================================================================================
+<strong class="text-white">📦 Total Executed Trade Iterations :</strong> ${data.total_trades} Trades
+<strong class="text-neon-green">🎯 Strategy Model Alpha Win Rate   :</strong> ${data.win_rate}
+<strong class="text-warning">📈 Absolute Net Growth Return      :</strong> ${data.net_profit_pct}
+<strong class="text-neon-blue">💰 Terminated Terminal Cash Equity :</strong> $${data.final_balance}
+================================================================================
+[STATUS]: Quantitative matrix operations loop closed successfully. Data set idle.`;
             }
         })
         .catch(err => {
-            if (outputLog) outputLog.innerText = "Simulation pipeline connection error: " + err;
+            if (outputLog) outputLog.innerText = "[CONNECTION FAULT]: Pipeline interface dropped. " + err;
         });
     }
 
